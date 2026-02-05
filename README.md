@@ -24,6 +24,22 @@ bash scripts/status.sh
 bash scripts/apply.sh --safe YYYY-MM-DD
 ```
 
+## Recommended Model
+
+- **Primary**: `gemini-2.5-flash` (fast, efficient)
+- **Fallback**: `gemini-2.5-flash-lite` (if needed)
+
+## Architecture
+
+Uses LLM for review, runs on cron schedule, human approval for content changes, auto-cleanup for maintenance tasks.
+
+## Safety
+
+- Content suggestions → Never auto-applied
+- Safe maintenance (archiving) → Auto with `--safe`
+- Risky operations → Require `--all` + confirmation
+- Trash recovery → Deleted files recoverable
+
 ## Files
 
 ```
@@ -31,7 +47,7 @@ scripts/
   review.sh       # Main daily review
   apply.sh        # Apply approved changes
   cleanup.sh      # Archive & retention
-  status.sh       # Check system status
+  status.sh       # Check system health
   install.sh      # One-time setup
 
 config/
@@ -40,19 +56,13 @@ config/
 SKILL.md          # Full documentation
 ```
 
-## Cost
+## Author
 
-- **1 Gemini request/day**
-- **Free tier**: 1,500 requests/day
-- **Cost**: £0
+**Max Hutchinson** — Building AI agent infrastructure.
 
-## Architecture
+- GitHub: [@MaxLaurieHutchinson](https://github.com/MaxLaurieHutchinson)
+- Agent: Ash
 
-Uses Gemini free tier for review, runs on cron schedule, human approval for content changes, auto-cleanup for maintenance tasks.
+## License
 
-## Safety
-
-- Content suggestions → Never auto-applied
-- Safe maintenance (archiving) → Auto with `--safe`
-- Risky operations → Require `--all` + confirmation
-- Trash recovery → Deleted files recoverable for 30 days
+MIT

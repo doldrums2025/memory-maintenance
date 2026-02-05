@@ -1,14 +1,17 @@
 ---
 name: memory-maintenance
 version: 2.0.0
-description: "Intelligent memory management for OpenClaw agents. Reviews daily notes, suggests MEMORY.md updates, maintains directory health, and auto-cleans old files. Uses Gemini free tier for cost efficiency."
-homepage: https://github.com/openclaw/skills/memory-maintenance
-author: "Ash (Max Hutchinson)"
-tags: ["memory", "maintenance", "automation", "gemini", "cleanup"]
+description: "Intelligent memory management for OpenClaw agents. Reviews daily notes, suggests MEMORY.md updates, maintains directory health, and auto-cleans old files. Recommended for agents with growing memory footprints."
+homepage: https://github.com/MaxLaurieHutchinson/memory-maintenance
+author: 
+  name: "Max Hutchinson"
+  email: "max.hutchinson258@gmail.com"
+  url: "https://github.com/MaxLaurieHutchinson"
+tags: ["memory", "maintenance", "automation", "agent-improvement", "workflow"]
 metadata:
   openclaw:
     emoji: 🧹
-    requires:
+    requires: 
       bins: ["gemini", "jq"]
       env: ["GEMINI_API_KEY"]
     install:
@@ -22,13 +25,30 @@ metadata:
 
 Intelligent memory management for OpenClaw agents. Reviews daily notes, suggests MEMORY.md updates, maintains directory health, and auto-cleans old files.
 
+## Why This Exists
+
+Agents wake up fresh every session. Without maintenance:
+- Daily notes pile up and become unsearchable
+- Important decisions get buried in old sessions
+- Context windows fill with irrelevant history
+- You repeat the same context-setting every day
+
+This skill automates the tedious work of keeping your agent's memory organized and actionable.
+
 ## Features
 
 - **Content Review**: Analyzes daily notes and suggests MEMORY.md updates
 - **Directory Health**: Monitors memory/ directory for naming issues, fragmentation, bloat
 - **Auto-Cleanup**: Archives old reviews (7+ days) and enforces retention policy (30 days)
-- **Cost Efficient**: Uses Gemini free tier (1,500 req/day limit, we use ~1/day)
 - **Safe by Default**: Content changes require approval; only safe maintenance auto-applies
+
+## Recommended Model
+
+This skill works well with lightweight models. We recommend:
+- **Primary**: `gemini-2.5-flash` (fast, cost-effective)
+- **Fallback**: `gemini-2.5-flash-lite` (if rate limits hit)
+
+Both handle the structured output and analysis tasks efficiently.
 
 ## Quick Start
 
@@ -36,42 +56,38 @@ Intelligent memory management for OpenClaw agents. Reviews daily notes, suggests
 # Install the skill
 clawhub install memory-maintenance
 
-# Configure (edit config/settings.json)
-{
-  "review_time": "23:00",
-  "archive_after_days": 7,
-  "retention_days": 30,
-  "gemini_model": "gemini-2.5-flash"
-}
+# Configure (optional)
+# Edit config/settings.json to customize schedule, retention, etc.
 
 # Run manually
 openclaw skill memory-maintenance run
 
-# Or let it run automatically via cron
+# Or let it run automatically via cron (configured during install)
 ```
 
 ## Architecture
 
 ```
-memory-maintenance/
-├── scripts/
-│   ├── review.sh          # Main review script (daily)
-│   ├── apply.sh           # Apply approved changes
-│   ├── cleanup.sh         # Archive & retention
-│   └── install.sh         # Setup
-├── config/
-│   └── settings.json      # User configuration
-└── templates/
-    └── review-prompt.txt  # Customizable Gemini prompt
+Daily Session Notes (memory/YYYY-MM-DD.md)
+    ↓
+Review Agent (scheduled daily)
+    ↓
+Structured Suggestions (JSON)
+    ↓
+Human Review (markdown report)
+    ↓
+Approved Updates → MEMORY.md
+    ↓
+Auto-Cleanup (archive old files)
 ```
 
 ## Workflow
 
 1. **Daily Review** (23:00 by default)
-   - Scans last 7 days of notes
+   - Scans configurable lookback period (default: 7 days)
    - Checks memory/ directory health
-   - Generates suggestions via Gemini
-   - Outputs: `agents/memory/review-v2-YYYY-MM-DD.{json,md}`
+   - Generates suggestions via LLM
+   - Outputs structured JSON + human-readable markdown
 
 2. **Human Review**
    - Read `agents/memory/review-v2-YYYY-MM-DD.md`
@@ -79,7 +95,7 @@ memory-maintenance/
 
 3. **Apply Changes**
    ```bash
-   # Dry run
+   # Dry run (preview)
    openclaw skill memory-maintenance apply --dry-run 2026-02-05
    
    # Apply safe changes (archiving, cleanup)
@@ -90,8 +106,8 @@ memory-maintenance/
    ```
 
 4. **Auto-Cleanup** (runs after successful review)
-   - Archives reviews older than 7 days
-   - Deletes archive files older than 30 days
+   - Archives reviews older than configured threshold
+   - Deletes archive files older than retention period
    - Cleans up error logs
 
 ## Configuration
@@ -107,7 +123,7 @@ Edit `config/settings.json`:
   },
   "review": {
     "lookback_days": 7,
-    "gemini_model": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
     "max_suggestions": 10
   },
   "maintenance": {
@@ -126,17 +142,10 @@ Edit `config/settings.json`:
 
 ## Safety
 
-- **Content suggestions**: Never auto-applied
+- **Content suggestions**: Never auto-applied (human review mandatory)
 - **Safe maintenance** (archiving): Auto-applied with `--safe`
 - **Risky operations** (delete, rename): Require `--all` + confirmation
-- **Trash recovery**: Deleted files go to `agents/memory/.trash/`
-
-## Cost
-
-- **1 Gemini request/day** (~2,000-5,000 tokens)
-- **Free tier**: 1,500 requests/day
-- **Actual usage**: <0.1% of free tier
-- **Cost**: £0
+- **Trash recovery**: Deleted files go to `agents/memory/.trash/` (recoverable for retention period)
 
 ## Commands
 
@@ -159,7 +168,7 @@ openclaw skill memory-maintenance stats
 
 ## Integration with MEMORY.md
 
-The skill suggests updates to these MEMORY.md sections:
+The skill suggests updates to standard MEMORY.md sections:
 - Agent Identity and Core Preferences
 - Infrastructure/Setup
 - Memory Management
@@ -168,20 +177,6 @@ The skill suggests updates to these MEMORY.md sections:
 - Scheduled Operations
 - Content Creation & Projects
 - Active Projects
-
-## Troubleshooting
-
-**"Gemini failed"**
-- Check `GEMINI_API_KEY` is set in `.env`
-- Verify Gemini CLI is installed: `gemini --version`
-
-**"No suggestions generated"**
-- Check daily notes exist in `memory/YYYY-MM-DD.md`
-- Review error logs in `agents/memory/error-*.txt`
-
-**"Too many maintenance tasks"**
-- Run `openclaw skill memory-maintenance apply --safe` to archive old files
-- Adjust `archive_after_days` in config
 
 ## Files
 
@@ -194,10 +189,37 @@ The skill suggests updates to these MEMORY.md sections:
 - `agents/memory/archive/YYYY-MM/` — Monthly buckets
 - `agents/memory/.trash/` — Recoverable deletions
 
+## Requirements
+
+- OpenClaw >= 2026.2.0
+- Gemini CLI (`brew install gemini-cli`)
+- jq (`brew install jq`)
+- Gemini API key (from Google AI Studio)
+
+## Troubleshooting
+
+**"Gemini failed"**
+→ Check `GEMINI_API_KEY` is set in `.env` or environment
+
+**"No suggestions generated"**
+→ Check daily notes exist in `memory/YYYY-MM-DD.md`
+→ Review error logs in `agents/memory/error-*.txt`
+
+**"Too many maintenance tasks"**
+→ Run `openclaw skill memory-maintenance apply --safe` to archive old files
+→ Adjust `archive_after_days` in config
+
+## Author
+
+Built by **Max Hutchinson** as part of an AI agent infrastructure exploration.
+
+- GitHub: [@MaxLaurieHutchinson](https://github.com/MaxLaurieHutchinson)
+- Agent: Ash (OpenClaw)
+
 ## License
 
 MIT — Free to use, modify, distribute.
 
 ---
 
-*Part of the Hybrid Agent Architecture. Built with Gemini free tier for sustainable automation.*
+*Part of the Hybrid Agent Architecture. Built for agents that improve over time.*
