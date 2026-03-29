@@ -5,7 +5,7 @@
 
 set -e
 
-WORKSPACE="/Users/maxhutchinson/.openclaw/workspace"
+WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 MEMORY_DIR="$WORKSPACE/agents/memory"
 DATE=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)

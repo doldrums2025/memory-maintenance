@@ -7,13 +7,13 @@
 set -e
 
 # Load environment
-if [ -f "/Users/maxhutchinson/.openclaw/workspace/.env" ]; then
+if [ -f "${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}/.env" ]; then
     set -a
-    source /Users/maxhutchinson/.openclaw/workspace/.env
+    source ${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}/.env
     set +a
 fi
 
-WORKSPACE="/Users/maxhutchinson/.openclaw/workspace"
+WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 OUTPUT_DIR="$WORKSPACE/agents/memory"
 DATE=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)

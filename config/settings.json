@@ -3,7 +3,7 @@
   "schedule": {
     "enabled": true,
     "time": "23:00",
-    "timezone": "Europe/London"
+    "timezone": "Asia/Shanghai"
   },
   "review": {
     "lookback_days": 7,

@@ -5,7 +5,7 @@
 
 set -e
 
-WORKSPACE="/Users/maxhutchinson/.openclaw/workspace"
+WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 OUTPUT_DIR="$WORKSPACE/agents/memory"
 
 # Parse arguments
